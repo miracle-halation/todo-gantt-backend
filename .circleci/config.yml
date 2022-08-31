@@ -1,0 +1,44 @@
+version: 2.1
+orbs:
+  ruby: circleci/ruby@0.1.2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:3.0.2-node
+        environment:
+          RAILS_ENV: test
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USERNAME: 'root'
+          MYSQL_PASSWORD: 'password'
+      - image: circleci/mysql:8.0
+        command: |
+          mysqld --default-authentication-plugin=mysql_native_password
+        environment:
+          MYSQL_ROOT_PASSWORD: 'password'
+    executor: ruby/default
+    steps:
+      - checkout
+      - run:
+          name: bundler
+          command: |
+            gem install bundler
+            bundle update
+            bundle install
+      - run:
+          name: databaseファイル変更
+          command: |
+            mv config/database.yml config/database_1.yml
+            mv config/database_2.yml config/database.yml
+      - run:
+          name: データベース
+          command: |
+            dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+            rails db:create
+            rails db:schema:load
+      - run:
+          name: rubocop実行
+          command: bundle exec rubocop
+      - run:
+          name: テスト実行
+          command: bundle exec rspec
