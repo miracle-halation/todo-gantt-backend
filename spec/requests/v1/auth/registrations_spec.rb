@@ -1,10 +1,10 @@
 require 'rails_helper'
 
-RSpec.describe "V1::Auth::Registrations", type: :request do
+RSpec.describe 'V1::Auth::Registrations', type: :request do
   describe 'POST /v1/auth' do
     context '成功するとき' do
       it '値が正常だと登録に成功してログインデータを返す' do
-        test_params = { name:'test', email: 'test@example.com', password: 'testtest' }
+        test_params = { name: 'test', email: 'test@example.com', password: 'testtest' }
         expect { post v1_user_registration_path, params: test_params }.to change(User, :count).by(1)
         expect(response.status).to eq(200)
         json = JSON.parse(response.body)
